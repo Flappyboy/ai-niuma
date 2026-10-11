@@ -4,8 +4,10 @@
 
 ## 这轮就有的文件
 
-- `skill.md`：贴进现有 Agent 的规则
+- `skill.md`：协议正文。各 Agent 的规则和 skill 由 `bin/init.js` 生成
+- `setup.json`：哪些 Agent 已经初始化过。脚本维护，不要手改记忆到这里
 - `rules.md`：偏好
+- `facts.md`：用户明确说过的稳定事实（身份、账号、路径、仓库）
 - `gotchas.md`：踩坑
 - `knowledge-index.md`：资料索引（正文在仓库的 `library/`）
 - `playbooks/`：跑通的流程手册
