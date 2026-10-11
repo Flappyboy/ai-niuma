@@ -2,4 +2,4 @@
 
 可以直接把笔记、文档丢进来，也可以让 Agent 按 `.niuma/playbooks/import-knowledge.md` 从你指定的目录导入。
 
-导入或新增有意义的文件后，记得在 `.niuma/knowledge-index.md` 补一行索引。
+导入或新增有意义的文件后，记得在 `.niuma/knowledge-index.md` 补一行索引，并写上相关文件的路径。笔记开头也可以写一行「相关：」。

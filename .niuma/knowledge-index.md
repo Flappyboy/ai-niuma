@@ -4,6 +4,10 @@
 
 格式：
 
-- [YYYY-MM-DD] 路径 — 一句话说明
+- [YYYY-MM-DD] 路径 — 一句话说明 — 相关：另一路径
+
+「相关」指向手册、别的资料或舱内文件。没有就省略。
 
 跳过 .git、依赖目录、构建产物、二进制，以及 .niuma/backups/、.niuma/journal/、.niuma/reports/。
+
+## 现行

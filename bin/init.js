@@ -13,6 +13,7 @@ const CABIN_FILES = [
   ".niuma/skill.md",
   ".niuma/rules.md",
   ".niuma/facts.md",
+  ".niuma/active.md",
   ".niuma/gotchas.md",
   ".niuma/knowledge-index.md",
   ".niuma/README.md",
@@ -26,8 +27,27 @@ const CABIN_FILES = [
 
 const STAMP = "niuma-generated";
 
-const CURSOR_RULE = `---
-description: 知识舱记忆。开工先读，用户说出的事实当时就落盘。
+function learnLoop(cabinRoot) {
+  return `知识舱根目录：${cabinRoot}
+
+按 \`.niuma/skill.md\` 执行。记忆只读写这个舱；用户指定的其它目录只拿来干活。
+
+开工只读 \`.niuma/active.md\`，以及 \`.niuma/rules.md\`、\`.niuma/facts.md\`、\`.niuma/gotchas.md\` 的「现行」段，还有 \`tasks/inbox.md\` 的「下一步」。管到当前这件事的，照它做。「已过期」默认不读。
+
+正在做的事写入 \`.niuma/active.md\`。变成稳定事实、偏好、坑或手册后，从 active.md 挪走。写手册和资料索引时带上相关文件路径。新待办进「清单」，当前只做「下一步」那一条。
+
+边做边学，当场写进对应文件的「现行」段：纠正和偏好写入 \`.niuma/rules.md\`，稳定事实写入 \`.niuma/facts.md\`，新坑写入 \`.niuma/gotchas.md\`，跑通且还会再用的步骤写成 \`.niuma/playbooks/\`。只记下一回还会用到的。不要只在回复里说「已记下」。密钥、token、密码不写。
+
+若 \`.niuma/setup.json\` 没有当前 Agent，先运行 \`node bin/init.js\`。已有文件不要覆盖。
+`;
+}
+
+function agentFiles(cabinRoot) {
+  const body = learnLoop(cabinRoot);
+  return {
+    cursor: {
+      ".cursor/rules/niuma.mdc": `---
+description: 边做边学。开工先读知识舱，纠正、事实和新坑当场写。
 alwaysApply: true
 ---
 
@@ -35,83 +55,51 @@ alwaysApply: true
 
 # 知识舱
 
-按 \`.niuma/skill.md\` 执行。任务开始时，若 \`.niuma/setup.json\` 没有当前 Agent，先运行 \`node bin/init.js\`。然后读 \`.niuma/skill.md\`、\`.niuma/rules.md\`、\`.niuma/facts.md\`、\`.niuma/gotchas.md\`，以及 \`tasks/inbox.md\` 和当天待办。
-
-用户明确说出稳定事实（身份、账号、常用路径、仓库地址）时，当时就追加到 \`.niuma/facts.md\`，带当天日期。同一事实已有且仍然有效则不重复写。不要只在回复里说「已记下」。不要猜测；没说全的先问。
-
-用户明确说过的新偏好追加到 \`.niuma/rules.md\`。真实踩坑追加到 \`.niuma/gotchas.md\`。密钥、token、密码不写进记忆。已有文件不要覆盖。
-`;
-
-const CURSOR_SKILL = `---
+${body}`,
+      ".cursor/skills/niuma/SKILL.md": `---
 name: niuma
-description: 维护本仓库知识舱的偏好、稳定事实、踩坑和待办。在开工，或用户提到知识舱、偏好、事实、待办、导入资料时使用。
+description: 边做边学的知识舱。开工先读记忆，用户纠正、说出事实、踩到坑或跑通步骤时当场记下来。用户提到知识舱、偏好、事实、踩坑、待办或导入资料时使用。
 ---
 
 <!-- ${STAMP}: cursor skill -->
 
 # 知识舱
 
-1. 若 \`.niuma/setup.json\` 没有当前 Agent，先运行 \`node bin/init.js\`。已有文件不要覆盖。
-2. 读并遵守 \`.niuma/skill.md\`。
-3. 同时读 \`.niuma/rules.md\`、\`.niuma/facts.md\`、\`.niuma/gotchas.md\` 和 \`tasks/inbox.md\`。
-`;
-
-const CLAUDE_RULE = `<!-- ${STAMP}: claude rule -->
+${body}`,
+    },
+    claude: {
+      "CLAUDE.md": `<!-- ${STAMP}: claude rule -->
 
 # 知识舱
 
-按 \`.niuma/skill.md\` 执行。任务开始时，若 \`.niuma/setup.json\` 没有当前 Agent，先运行 \`node bin/init.js\`。然后读 \`.niuma/skill.md\`、\`.niuma/rules.md\`、\`.niuma/facts.md\`、\`.niuma/gotchas.md\`，以及 \`tasks/inbox.md\` 和当天待办。
-
-用户明确说出稳定事实（身份、账号、常用路径、仓库地址）时，当时就追加到 \`.niuma/facts.md\`，带当天日期。同一事实已有且仍然有效则不重复写。不要只在回复里说「已记下」。不要猜测；没说全的先问。
-
-用户明确说过的新偏好追加到 \`.niuma/rules.md\`。真实踩坑追加到 \`.niuma/gotchas.md\`。密钥、token、密码不写进记忆。已有文件不要覆盖。
-`;
-
-const CLAUDE_SKILL = `---
+${body}`,
+      ".claude/skills/niuma/SKILL.md": `---
 name: niuma
-description: 维护本仓库知识舱的偏好、稳定事实、踩坑和待办。在开工，或用户提到知识舱、偏好、事实、待办、导入资料时使用。
+description: 边做边学的知识舱。开工先读记忆，用户纠正、说出事实、踩到坑或跑通步骤时当场记下来。用户提到知识舱、偏好、事实、踩坑、待办或导入资料时使用。
 ---
 
 <!-- ${STAMP}: claude skill -->
 
 # 知识舱
 
-1. 若 \`.niuma/setup.json\` 没有当前 Agent，先运行 \`node bin/init.js\`。已有文件不要覆盖。
-2. 读并遵守 \`.niuma/skill.md\`。
-3. 同时读 \`.niuma/rules.md\`、\`.niuma/facts.md\`、\`.niuma/gotchas.md\` 和 \`tasks/inbox.md\`。
-`;
-
-const AIDER_CONF = `# ${STAMP}: aider config
-read:
-  - AGENTS.md
-`;
-
-const AIDER_RULE = `<!-- ${STAMP}: aider rule -->
+${body}`,
+    },
+    aider: {
+      "CONVENTIONS.md": `<!-- ${STAMP}: aider rule -->
 
 # 知识舱
 
-按 \`.niuma/skill.md\` 执行。任务开始时，若 \`.niuma/setup.json\` 没有当前 Agent，先运行 \`node bin/init.js\`。然后读 \`.niuma/skill.md\`、\`.niuma/rules.md\`、\`.niuma/facts.md\`、\`.niuma/gotchas.md\`，以及 \`tasks/inbox.md\` 和当天待办。
+${body}`,
+      ".aider.conf.yml": `# ${STAMP}: aider config
+read:
+  - AGENTS.md
+`,
+    },
+    agents: {},
+  };
+}
 
-用户明确说出稳定事实（身份、账号、常用路径、仓库地址）时，当时就追加到 \`.niuma/facts.md\`，带当天日期。同一事实已有且仍然有效则不重复写。不要只在回复里说「已记下」。不要猜测；没说全的先问。
-
-用户明确说过的新偏好追加到 \`.niuma/rules.md\`。真实踩坑追加到 \`.niuma/gotchas.md\`。密钥、token、密码不写进记忆。已有文件不要覆盖。
-`;
-
-const AGENT_FILES = {
-  cursor: {
-    ".cursor/rules/niuma.mdc": CURSOR_RULE,
-    ".cursor/skills/niuma/SKILL.md": CURSOR_SKILL,
-  },
-  claude: {
-    "CLAUDE.md": CLAUDE_RULE,
-    ".claude/skills/niuma/SKILL.md": CLAUDE_SKILL,
-  },
-  aider: {
-    "CONVENTIONS.md": AIDER_RULE,
-    ".aider.conf.yml": AIDER_CONF,
-  },
-  agents: {},
-};
+const AGENT_IDS = ["cursor", "claude", "aider", "agents"];
 
 function parseArgs(argv) {
   const args = { agent: "auto", target: null, force: false, hook: null };
@@ -162,7 +150,7 @@ function detectAgent(env = process.env) {
 
 function resolveAgent(agent, env) {
   const resolved = agent === "auto" ? detectAgent(env) : agent;
-  if (!Object.prototype.hasOwnProperty.call(AGENT_FILES, resolved)) {
+  if (!AGENT_IDS.includes(resolved)) {
     throw new Error("不支持的 Agent：" + resolved + "。可选：cursor、claude、aider、agents");
   }
   return resolved;
@@ -323,7 +311,7 @@ function init(options) {
     ensureClaudeHook(targetRoot, created, refreshed, skipped);
   }
 
-  const generated = AGENT_FILES[agent];
+  const generated = agentFiles(targetRoot)[agent];
   for (const rel of Object.keys(generated)) {
     const dest = safeJoin(targetRoot, rel);
     if (!fs.existsSync(dest)) {
@@ -426,4 +414,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { init, detectAgent, parseArgs, resolveAgent, AGENT_FILES };
+module.exports = { init, detectAgent, parseArgs, resolveAgent, agentFiles, AGENT_IDS };
